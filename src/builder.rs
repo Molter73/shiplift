@@ -324,6 +324,7 @@ impl BuildOptions {
 pub struct BuildOptionsBuilder {
     path: String,
     params: HashMap<&'static str, String>,
+    buildargs: HashMap<String, String>,
 }
 
 impl BuildOptionsBuilder {
@@ -431,9 +432,23 @@ impl BuildOptionsBuilder {
     // todo: cpusetcpus
     // todo: cpuperiod
     // todo: cpuquota
-    // todo: buildargs
 
-    pub fn build(&self) -> BuildOptions {
+    pub fn buildargs(
+        &mut self,
+        key: &str,
+        value: &str,
+    ) -> &mut Self {
+        self.buildargs.insert(key.to_string(), value.to_string());
+        self
+    }
+
+    pub fn build(&mut self) -> BuildOptions {
+        // Add buildargs to params
+        self.params.insert(
+            "buildargs",
+            serde_json::to_string(&self.buildargs).unwrap_or_else(|_| String::from("{}")),
+        );
+
         BuildOptions {
             path: self.path.clone(),
             params: self.params.clone(),
